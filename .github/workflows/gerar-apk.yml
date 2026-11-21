@@ -1,0 +1,50 @@
+name: Gerar APK EMAVE Gestão
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  gerar-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Preparar SDK Android
+        uses: android-actions/setup-android@v3
+      - name: Instalar Android 36 e build tools
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+      - name: Testar regras financeiras
+        run: npm test
+      - name: Preparar arquivos da interface
+        run: npm run build
+      - name: Criar projeto Android
+        run: npx cap add android
+      - name: Sincronizar plugins
+        run: npx cap sync android
+      - name: Gerar APK debug de testes
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug --no-daemon
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMAVE-GESTAO-APK-TESTE
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

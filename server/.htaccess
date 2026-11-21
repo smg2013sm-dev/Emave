@@ -1,0 +1,7 @@
+<IfModule mod_setenvif.c>
+  SetEnvIfNoCase Authorization "(.+)" HTTP_AUTHORIZATION=$1
+</IfModule>
+Options -Indexes
+<FilesMatch "^(bootstrap|config\.example|cron_email|schema)\.(php|sql)$">
+  Require all denied
+</FilesMatch>

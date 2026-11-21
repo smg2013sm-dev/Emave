@@ -1,0 +1,11 @@
+node_modules/
+dist/
+android/
+saida/
+*.keystore
+*.jks
+.env
+.env.*
+server/config.php
+emave-config.php
+.DS_Store

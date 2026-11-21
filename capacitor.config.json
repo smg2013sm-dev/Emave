@@ -1,0 +1,6 @@
+{
+  "appId": "com.emaveimportados.gestao",
+  "appName": "EMAVE Gestão",
+  "webDir": "dist",
+  "android": {"allowMixedContent": false}
+}
