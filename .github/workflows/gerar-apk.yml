@@ -21,11 +21,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Preparar SDK Android
-        uses: android-actions/setup-android@v3
+      - name: Preparar SDK Android existente no runner
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+          SDKMANAGER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager | head -1)"
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+          "$SDKMANAGER" --version
       - name: Instalar Android 36 e build tools
         run: |
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+          "$SDKMANAGER" --licenses < /dev/null >/dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
       - name: Instalar dependências
         run: npm install --no-audit --no-fund
       - name: Testar regras financeiras
