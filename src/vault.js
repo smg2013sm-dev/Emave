@@ -2,8 +2,24 @@
 const DB='emave_cofre_v1', STORE='vault', ROW='primary';
 let activeKey=null;
 const encoder=new TextEncoder(), decoder=new TextDecoder();
-const b64=a=>{let out='';for(let i=0;i<a.length;i+=16384)out+=String.fromCharCode(...a.subarray(i,i+16384));return btoa(out);};
-const from64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+// Codificacao em blocos sem spread: evita estouro de pilha no Android WebView.
+export function encodeBase64Bytes(bytes) {
+ const parts=[], blockSize=3072;
+ for(let start=0;start<bytes.length;start+=blockSize){
+  let binary='';
+  const end=Math.min(start+blockSize,bytes.length);
+  for(let i=start;i<end;i++) binary+=String.fromCharCode(bytes[i]);
+  parts.push(btoa(binary));
+ }
+ return parts.join('');
+}
+export function decodeBase64Bytes(base64){
+ const binary=atob(base64),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+ return bytes;
+}
+const b64=encodeBase64Bytes;
+const from64=decodeBase64Bytes;
 export const vaultReady=()=>Boolean(activeKey);
 async function db(){return new Promise((resolve,reject)=>{let req=indexedDB.open(DB,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
 async function get(){const conn=await db();return new Promise((resolve,reject)=>{let tx=conn.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(ROW);req.onsuccess=()=>resolve(req.result??null);req.onerror=()=>reject(req.error);tx.oncomplete=()=>conn.close();});}

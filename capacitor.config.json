@@ -1,6 +1,6 @@
 {
-  "appId": "com.emaveimportados.gestao",
-  "appName": "EMAVE Gestão",
+  "appId": "com.emaveimportados.gestaocorrigido",
+  "appName": "EMAVE Gestão Novo",
   "webDir": "dist",
   "android": {"allowMixedContent": false}
 }

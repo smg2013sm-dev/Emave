@@ -20,11 +20,27 @@ const getForm=f=>Object.fromEntries(new FormData(f));
 const msg=(text,error=false)=>{const x=document.createElement('div');x.className='toast'+(error?' error':'');x.textContent=text;document.body.append(x);setTimeout(()=>x.remove(),4600);};
 const err=e=>{console.error(e);msg(e.message||String(e),true);};
 async function commit(mutate,notice='Salvo com segurança.'){
- if(committing)throw Error('Já existe um lançamento em andamento. Aguarde sua conclusão para evitar duplicações.');
+ if(committing)throw Error('Já existe um lançamento em andamento. Confira o saldo antes de tentar novamente.');
  committing=true;
  try {
-  let draft=structuredClone(data);mutate(draft);draft.revision++;draft.updatedAt=new Date().toISOString();await save(draft);data=draft;render();if(notice)msg(notice);
-  scheduleDueNotifications(data).catch(console.warn);if(data.settings.backupUrl&&data.settings.backupToken){clearTimeout(pendingBackup);pendingBackup=setTimeout(()=>pushBackup(data.settings).then(()=>updateBackupLabel()).catch(e=>console.warn('Cópia remota pendente:',e.message)),5000);}
+  const draft=structuredClone(data);
+  mutate(draft);
+  draft.revision++;
+  draft.updatedAt=new Date().toISOString();
+  await save(draft);
+  data=draft;
+  try { render(); }
+  catch(screenError){
+   console.error('Registro salvo; erro somente na atualização da tela:',screenError);
+   msg('Registro salvo, mas a tela falhou. Reabra o app e confira o saldo antes de tentar novamente.',true);
+   return;
+  }
+  if(notice)msg(notice);
+  scheduleDueNotifications(data).catch(console.warn);
+  if(data.settings.backupUrl&&data.settings.backupToken){
+   clearTimeout(pendingBackup);
+   pendingBackup=setTimeout(()=>pushBackup(data.settings).then(()=>updateBackupLabel()).catch(e=>console.warn('Backup remoto pendente:',e.message)),5000);
+  }
  } finally {committing=false;}
 }
 function updateBackupLabel(){let l=$('#syncState');if(!l||!data)return;let rec=JSON.parse(localStorage.getItem('emave_last_backup')||'null');l.textContent=rec&&rec.revision>=data.revision?'Backup remoto atualizado':'Backup remoto pendente';}
