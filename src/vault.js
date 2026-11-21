@@ -2,7 +2,7 @@
 const DB='emave_cofre_v1', STORE='vault', ROW='primary';
 let activeKey=null;
 const encoder=new TextEncoder(), decoder=new TextDecoder();
-const b64=a=>btoa(String.fromCharCode(...a));
+const b64=a=>{let out='';for(let i=0;i<a.length;i+=16384)out+=String.fromCharCode(...a.subarray(i,i+16384));return btoa(out);};
 const from64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 export const vaultReady=()=>Boolean(activeKey);
 async function db(){return new Promise((resolve,reject)=>{let req=indexedDB.open(DB,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
